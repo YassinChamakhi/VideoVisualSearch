@@ -24,131 +24,99 @@ Upload a video (or paste a YouTube URL), upload a query image, and instantly see
 ## 🗂 Project Structure
 
 ```
-video-visual-search/
+VideoVisualSearch/
 ├── backend/
-│   ├── api/
-│   │   └── routes.py           # All FastAPI endpoints
+│   ├── api/routes.py                  # All FastAPI endpoints
 │   ├── services/
-│   │   ├── embedding_service.py # CLIP model loading + inference
-│   │   ├── video_service.py     # yt-dlp download + OpenCV extraction
-│   │   ├── search_service.py    # FAISS index build/query
-│   │   └── pipeline_service.py  # Orchestrates the full pipeline
-│   ├── models/
-│   │   └── schemas.py           # Pydantic request/response models
-│   ├── utils/
-│   │   └── file_utils.py        # Paths, file helpers, timestamp formatting
-│   ├── storage/                 # Auto-created at runtime
-│   │   ├── videos/              # Uploaded/downloaded video files
-│   │   ├── frames/              # Extracted frame thumbnails
-│   │   └── indices/             # FAISS indices + metadata JSON
-│   ├── main.py                  # FastAPI app entrypoint
+│   │   ├── embedding_service.py       # CLIP model loading + inference
+│   │   ├── video_service.py           # yt-dlp download + OpenCV extraction
+│   │   ├── search_service.py          # FAISS index build/query
+│   │   └── pipeline_service.py        # Orchestrates the full pipeline
+│   ├── models/schemas.py              # Pydantic request/response models
+│   ├── utils/file_utils.py            # Paths, helpers, timestamp formatting
+│   ├── main.py                        # FastAPI app entrypoint
 │   ├── requirements.txt
+│   ├── Dockerfile
 │   └── .env.example
-│
-└── frontend/
-    ├── public/
-    │   └── index.html
-    └── src/
-        ├── components/
-        │   ├── VideoUploadPanel.jsx   # Local upload + YouTube URL
-        │   ├── ImageSearchPanel.jsx   # Query image upload
-        │   ├── ProgressBar.jsx        # Processing progress
-        │   ├── ResultsGrid.jsx        # Thumbnail grid with seek buttons
-        │   └── VideoPlayer.jsx        # Native HTML5 video with seek API
-        ├── hooks/
-        │   ├── useVideoProcessing.js  # Upload → process → poll state
-        │   └── useSearch.js           # Image search state
-        ├── services/
-        │   └── api.js                 # Axios API client
-        ├── App.jsx
-        ├── App.module.css
-        └── index.css
+├── frontend/
+│   ├── public/index.html
+│   ├── src/
+│   │   ├── components/                # VideoUploadPanel, ImageSearchPanel, etc.
+│   │   ├── hooks/                     # useVideoProcessing, useSearch
+│   │   ├── services/api.js            # Axios API client
+│   │   ├── App.jsx
+│   │   └── index.css
+│   └── Dockerfile
+├── docker-compose.yml
+├── start.sh
+└── README.md
 ```
 
 ---
 
 ## ⚙️ Prerequisites
 
-| Tool | Version | Install |
-|---|---|---|
-| Python | ≥ 3.10 | [python.org](https://python.org) |
-| Node.js | ≥ 18 | [nodejs.org](https://nodejs.org) |
-| yt-dlp | latest | `pip install yt-dlp` or see below |
-| ffmpeg | any | Required by yt-dlp for merging streams |
+| Tool | Install |
+|---|---|
+| **Docker** | [docs.docker.com](https://docs.docker.com/get-docker/) |
+| **Docker Compose** | Included with Docker Desktop |
 
-### Install ffmpeg
-
-**macOS:**
-```bash
-brew install ffmpeg
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt install ffmpeg
-```
-
-**Windows:**
-Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH.
+That's it — no Python, Node.js, or ffmpeg needed locally. Everything runs inside containers.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Docker)
 
-### 1. Clone / extract the project
-
-```bash
-cd video-visual-search
-```
-
-### 2. Set up the Python backend
+### 1. Clone the repo
 
 ```bash
-cd backend
-
-# Create a virtual environment (recommended)
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# (Optional) copy env template
-cp .env.example .env
+git clone https://github.com/YassinChamakhi/VideoVisualSearch.git
+cd VideoVisualSearch
 ```
 
-> **First run note:** On first startup, the CLIP model (~330 MB) will be downloaded from HuggingFace and cached in `~/.cache/huggingface/`. Subsequent startups are instant.
-
-### 3. Start the backend
+### 2. Start everything
 
 ```bash
-# From the backend/ directory with venv activated:
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+docker-compose up --build
 ```
 
-You should see:
-```
-INFO  CLIP model ready
-INFO  Uvicorn running on http://0.0.0.0:8000
-```
+This will:
+- 🐍 Build and start the **FastAPI backend** on port `8000`
+- ⚛️  Build and start the **React frontend** on port `3000`
+- 📦 Download the CLIP model (~330 MB) on first run — cached for subsequent starts
 
-API docs available at: **http://localhost:8000/docs**
+### 3. Open the app
 
-### 4. Set up and start the frontend
+| Service | URL |
+|---|---|
+| **Frontend** | http://localhost:3000 |
+| **Backend API docs** | http://localhost:8000/docs |
 
-Open a new terminal:
+### 4. Stop the app
 
 ```bash
-cd frontend
-
-# Install Node dependencies
-npm install
-
-# Start the dev server
-npm start
+docker-compose down
 ```
 
-The app opens at **http://localhost:3000**
+---
+
+## ⚡ Processing Pipeline
+
+```
+Video file / YouTube URL
+        │
+        ▼
+  OpenCV frame extraction (1 fps by default)
+        │
+        ▼
+  CLIP ViT-B/32 → 512-dim L2-normalized embedding per frame
+        │
+        ▼
+  FAISS IndexFlatIP (cosine similarity)
+        │
+        ▼
+  Query image → CLIP embedding → FAISS search → Top-K results
+```
 
 ---
 
@@ -156,76 +124,26 @@ The app opens at **http://localhost:3000**
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/upload-video` | Upload a local video file (multipart) |
+| `POST` | `/api/upload-video` | Upload a local video file |
 | `POST` | `/api/download-youtube` | Download video from YouTube URL |
 | `POST` | `/api/process-video` | Start frame extraction + FAISS indexing |
-| `GET` | `/api/video-status/{id}` | Poll processing progress |
+| `GET`  | `/api/video-status/{id}` | Poll processing progress |
 | `POST` | `/api/search-by-image` | Run visual similarity search |
-| `GET` | `/api/results/{id}` | Get cached search results |
-| `GET` | `/api/video/{id}` | Stream the video (supports Range requests) |
-| `GET` | `/api/video-info/{id}` | Get stored video metadata |
-| `GET` | `/frames/{id}/{file}` | Serve frame thumbnail |
-| `GET` | `/health` | Health check |
-
-### Example: Upload + Process + Search (curl)
-
-```bash
-# 1. Upload video
-VIDEO_ID=$(curl -s -X POST http://localhost:8000/api/upload-video \
-  -F "file=@/path/to/video.mp4" | python3 -c "import sys,json; print(json.load(sys.stdin)['video_id'])")
-
-# 2. Start processing
-curl -X POST http://localhost:8000/api/process-video \
-  -H "Content-Type: application/json" \
-  -d "{\"video_id\": \"$VIDEO_ID\", \"fps\": 1.0}"
-
-# 3. Poll until done
-watch -n 1 "curl -s http://localhost:8000/api/video-status/$VIDEO_ID | python3 -m json.tool"
-
-# 4. Search with query image
-curl -X POST http://localhost:8000/api/search-by-image \
-  -F "video_id=$VIDEO_ID" \
-  -F "top_k=10" \
-  -F "file=@/path/to/query.jpg"
-```
-
----
-
-## ⚡ Processing Pipeline (Technical)
-
-```
-Video file / YouTube URL
-        │
-        ▼
-  OpenCV frame extraction
-  (1 frame/sec by default)
-        │
-        ▼
-  CLIP ViT-B/32 image encoder
-  → 512-dim L2-normalized embedding per frame
-        │
-        ▼
-  FAISS IndexFlatIP (inner product = cosine similarity)
-  → Sub-millisecond similarity search
-        │
-        ▼
-  Query image → CLIP embedding → FAISS search
-  → Top-K results with timestamps + scores
-```
+| `GET`  | `/api/results/{id}` | Get cached search results |
+| `GET`  | `/api/video/{id}` | Stream the video (Range requests supported) |
+| `GET`  | `/health` | Health check |
 
 ---
 
 ## 🎛 Configuration
 
 ### Change frame extraction rate
-Use the FPS selector in the UI (0.5/1/2 FPS) or pass `fps` in the API request.
+Use the FPS selector in the UI (0.5 / 1 / 2 FPS) or pass `fps` in the API.
 
-Higher FPS = more precise results but longer processing time and larger index.
-
-### Use a more accurate CLIP model
+### Use a larger CLIP model
 Edit `backend/services/embedding_service.py`:
 ```python
-MODEL_NAME = "openai/clip-vit-large-patch14"  # ~307M params, 768-dim
+MODEL_NAME    = "openai/clip-vit-large-patch14"  # 768-dim
 EMBEDDING_DIM = 768
 ```
 
@@ -239,45 +157,33 @@ MAX_VIDEO_SIZE_MB = 1000  # 1 GB
 
 ## 🛠 Troubleshooting
 
-**"yt-dlp not found"**
+**Containers won't start**
+Make sure Docker Desktop is running, then try:
 ```bash
-pip install yt-dlp
-# or
-pip install --upgrade yt-dlp
+docker-compose down && docker-compose up --build
 ```
 
-**"CUDA out of memory"**
-Reduce batch size in `embedding_service.py`:
-```python
-compute_batch_embeddings(frame_paths, batch_size=8)
-```
+**CLIP model download is slow**
+First run downloads ~330 MB — just wait. Subsequent starts use the cached model.
 
 **"Video not playing in browser"**
-Convert to H.264 MP4 for best browser compatibility:
+Convert to H.264 MP4 for best compatibility:
 ```bash
 ffmpeg -i input.mkv -c:v libx264 -c:a aac output.mp4
 ```
 
 **Frontend can't reach backend**
-Ensure the backend is running on port 8000. Check `frontend/src/services/api.js` and update `BASE_URL` if needed.
+Check `frontend/src/services/api.js` and make sure `BASE_URL` points to `http://localhost:8000`.
 
 ---
 
-## 📦 Dependencies
+## 📦 Stack
 
-### Backend
-- **FastAPI** — async Python web framework
-- **OpenCV** — frame extraction
-- **HuggingFace Transformers** — CLIP model
-- **PyTorch** — deep learning runtime
-- **FAISS** — vector similarity search
-- **yt-dlp** — YouTube downloading
-- **Pillow** — image processing
-
-### Frontend
-- **React 18** — UI framework
-- **Axios** — HTTP client
-- **Lucide React** — icons
+| Layer | Tech |
+|---|---|
+| Backend | FastAPI, OpenCV, HuggingFace Transformers, PyTorch, FAISS, yt-dlp |
+| Frontend | React 18, Axios, Lucide React |
+| Infrastructure | Docker, Docker Compose |
 
 ---
 
