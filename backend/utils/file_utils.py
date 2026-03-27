@@ -8,6 +8,10 @@ from pathlib import Path
 from typing import Optional
 import cv2
 
+import logging
+logger = logging.getLogger("utils.file_utils")
+
+
 
 # ── Base storage paths ──────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent.parent
