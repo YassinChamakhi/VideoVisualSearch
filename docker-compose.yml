@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+
+  # ── Backend (FastAPI + CLIP + FAISS) ────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vvs-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist uploaded videos, frames, and FAISS indices across restarts
+      - vvs-videos:/app/storage/videos
+      - vvs-frames:/app/storage/frames
+      - vvs-indices:/app/storage/indices
+      # Cache HuggingFace model so it isn't re-downloaded on every build
+      - vvs-hf-cache:/root/.cache/huggingface
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_HOME=/root/.cache/huggingface
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+
+  # ── Frontend (React dev server) ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vvs-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - CHOKIDAR_USEPOLLING=true   # needed for file watching inside Docker on Windows
+      - WDS_SOCKET_PORT=3000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ── Named volumes (survive container restarts and rebuilds) ───────────────────
+volumes:
+  vvs-videos:
+  vvs-frames:
+  vvs-indices:
+  vvs-hf-cache:

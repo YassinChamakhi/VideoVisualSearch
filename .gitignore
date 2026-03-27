@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# Storage (runtime-generated, can be large)
+backend/storage/videos/*
+backend/storage/frames/*
+backend/storage/indices/*
+!backend/storage/videos/.gitkeep
+!backend/storage/frames/.gitkeep
+!backend/storage/indices/.gitkeep
+
+# Node
+node_modules/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# HuggingFace cache (large model files)
+# ~/.cache/huggingface/ is outside this repo
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
