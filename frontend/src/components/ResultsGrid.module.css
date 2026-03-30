@@ -1,9 +1,5 @@
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  animation: fadeIn 0.4s ease both;
-}
+
+.container { display: flex; flex-direction: column; gap: 16px; }
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
 .header {
@@ -12,24 +8,20 @@
   justify-content: space-between;
 }
 
-.headerLeft {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
+.headerLeft { display: flex; align-items: baseline; gap: 8px; }
 
 .count {
   font-size: 28px;
-  font-weight: 800;
-  color: var(--accent-bright);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.04em;
   line-height: 1;
-  font-family: var(--font-mono);
 }
 
 .countLabel {
   font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 
 .queryTime {
@@ -37,52 +29,48 @@
   align-items: center;
   gap: 5px;
   font-size: 11px;
-  color: var(--text-muted);
   font-family: var(--font-mono);
-  background: var(--bg-elevated);
+  color: var(--teal);
+  background: var(--teal-dim);
+  border: 1px solid rgba(20,184,166,0.2);
   padding: 4px 10px;
   border-radius: 20px;
-  border: 1px solid var(--border);
 }
 
-/* ── Grid ─────────────────────────────────────────────────────────────────── */
+/* ── Grid ────────────────────────────────────────────────────────────────── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
-/* ── Card ─────────────────────────────────────────────────────────────────── */
+/* ── Card ────────────────────────────────────────────────────────────────── */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
-  padding: 0;
-  text-align: left;
+  background: var(--bg-card);
+  backdrop-filter: var(--blur-md);
+  border: 1px solid var(--border);
   transition: all var(--transition);
-  animation: fadeIn 0.35s var(--rank-delay, 0s) ease both;
   display: flex;
   flex-direction: column;
+  animation: fadeUp 0.3s ease var(--rank-delay, 0s) both;
+  box-shadow: var(--shadow-glass);
 }
-
 .card:hover {
-  border-color: var(--accent);
+  border-color: rgba(139,92,246,0.4);
   transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(120, 85, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.2);
 }
+.card:active { transform: translateY(-1px); }
 
-.card:active {
-  transform: translateY(-1px);
-}
-
-/* ── Thumbnail ────────────────────────────────────────────────────────────── */
+/* ── Thumbnail ───────────────────────────────────────────────────────────── */
 .thumbWrapper {
   position: relative;
-  aspect-ratio: 16 / 9;
-  background: #000;
+  aspect-ratio: 16/9;
   overflow: hidden;
+  background: rgba(0,0,0,0.4);
 }
 
 .thumb {
@@ -92,10 +80,7 @@
   display: block;
   transition: transform 0.3s ease;
 }
-
-.card:hover .thumb {
-  transform: scale(1.05);
-}
+.card:hover .thumb { transform: scale(1.04); }
 
 .thumbFallback {
   width: 100%;
@@ -103,81 +88,81 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-elevated);
   color: var(--text-muted);
+  background: var(--bg-elevated);
 }
 
-/* ── Rank badge ───────────────────────────────────────────────────────────── */
 .rankBadge {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 7px;
+  left: 7px;
   font-size: 10px;
-  font-weight: 700;
   font-family: var(--font-mono);
-  background: rgba(0, 0, 0, 0.75);
-  color: var(--accent-bright);
-  padding: 2px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: var(--blur-sm);
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* ── Score bar ────────────────────────────────────────────────────────────── */
 .scoreBarWrapper {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0,0,0,0.4);
 }
 
 .scoreBar {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  background: linear-gradient(90deg, var(--accent), var(--blue));
   transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(139,92,246,0.5);
 }
 
-/* ── Play overlay ─────────────────────────────────────────────────────────── */
 .playOverlay {
   position: absolute;
   inset: 0;
+  background: rgba(0,0,0,0);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(120, 85, 255, 0);
-  color: #fff;
+  color: white;
   opacity: 0;
   transition: all var(--transition);
 }
-
 .card:hover .playOverlay {
-  background: rgba(120, 85, 255, 0.35);
   opacity: 1;
+  background: rgba(0,0,0,0.3);
 }
 
-/* ── Meta ─────────────────────────────────────────────────────────────────── */
+/* ── Meta ────────────────────────────────────────────────────────────────── */
 .meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 9px 11px;
   gap: 6px;
 }
 
 .timestamp {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-size: 11px;
   font-family: var(--font-mono);
-  font-weight: 700;
   color: var(--text-secondary);
 }
 
 .score {
   font-size: 11px;
   font-family: var(--font-mono);
-  font-weight: 700;
-  color: color-mix(in srgb, var(--accent-bright) calc(var(--score) * 100%), var(--text-muted));
+  font-weight: 600;
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+  padding: 2px 7px;
+  border-radius: 20px;
 }
